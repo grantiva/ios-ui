@@ -14,13 +14,13 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../GrantivaSDK"),
+        .package(url: "https://github.com/grantiva/ios-sdk.git", from: "1.0.0"),
     ],
     targets: [
         .target(
             name: "GrantivaUI",
             dependencies: [
-                .product(name: "Grantiva", package: "GrantivaSDK"),
+                .product(name: "Grantiva", package: "ios-sdk"),
             ]
         ),
         .testTarget(
