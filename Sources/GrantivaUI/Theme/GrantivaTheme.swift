@@ -23,11 +23,33 @@ public struct GrantivaTheme: Sendable {
     public var cornerRadius: CGFloat
     public var spacing: CGFloat
 
+    /// Adaptive background that respects light/dark mode on both iOS and macOS.
+    public static var adaptiveBackground: Color {
+        #if os(iOS) || os(visionOS)
+        Color(.systemBackground)
+        #elseif os(macOS)
+        Color(.windowBackgroundColor)
+        #else
+        Color.white
+        #endif
+    }
+
+    /// Adaptive surface color for cards and grouped content areas.
+    public static var adaptiveSurface: Color {
+        #if os(iOS) || os(visionOS)
+        Color(.secondarySystemBackground)
+        #elseif os(macOS)
+        Color(.controlBackgroundColor)
+        #else
+        Color(white: 0.95)
+        #endif
+    }
+
     public init(
         accentColor: Color = .blue,
         secondaryColor: Color = .secondary,
-        backgroundColor: Color = .white,
-        surfaceColor: Color = Color(white: 0.95),
+        backgroundColor: Color = GrantivaTheme.adaptiveBackground,
+        surfaceColor: Color = GrantivaTheme.adaptiveSurface,
         textPrimary: Color = .primary,
         textSecondary: Color = .secondary,
         destructiveColor: Color = .red,
