@@ -30,6 +30,9 @@ struct TicketRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(ticket.subject), status: \(ticket.status.displayName), priority: \(ticket.priority.displayName)")
+        .accessibilityHint("Tap to view conversation")
     }
 }
 
