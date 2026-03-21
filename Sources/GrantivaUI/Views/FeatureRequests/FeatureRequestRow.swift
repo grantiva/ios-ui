@@ -35,6 +35,9 @@ struct FeatureRequestRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(feature.title), \(feature.voteCount) votes, status: \(feature.status.displayName)")
+        .accessibilityHint("Tap to view details")
     }
 }
 

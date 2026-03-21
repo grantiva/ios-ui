@@ -27,6 +27,9 @@ struct VoteButton: View {
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.impact(flexibility: .soft), trigger: hasVoted)
+        .accessibilityLabel(hasVoted ? "Remove vote, \(count) votes" : "Vote, \(count) votes")
+        .accessibilityHint(hasVoted ? "Tap to remove your vote" : "Tap to vote for this request")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
