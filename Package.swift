@@ -21,6 +21,9 @@ let package = Package(
             name: "GrantivaUI",
             dependencies: [
                 .product(name: "Grantiva", package: "ios-sdk"),
+            ],
+            resources: [
+                .copy("PrivacyInfo.xcprivacy")
             ]
         ),
         .testTarget(

@@ -172,6 +172,44 @@ All views support:
 - **VoiceOver** — meaningful combined labels on list rows and interactive elements
 - **Dynamic Type** — all text uses system font styles that scale automatically
 
+## Privacy Manifest
+
+GrantivaUI ships an Apple privacy manifest at `Sources/GrantivaUI/PrivacyInfo.xcprivacy`, bundled
+as an SPM resource so Xcode folds it into your app's privacy report automatically.
+
+It declares **no data collection** and **no required-reason API use**:
+
+- `NSPrivacyTracking` — `false`, and `NSPrivacyTrackingDomains` is empty.
+- `NSPrivacyCollectedDataTypes` — empty.
+- `NSPrivacyAccessedAPITypes` — empty. GrantivaUI uses no `UserDefaults`, no file timestamp APIs,
+  no boot time, no disk space, and no active-keyboard APIs.
+
+This is accurate because GrantivaUI performs no I/O of its own. It has no `URLSession`, no
+Keychain access, no persistence, and reads no device identifiers. The views hold what the user
+types in SwiftUI `@State` and hand it to `GrantivaSDK` through `FeedbackUIService`; the SDK is
+what transmits it, and the SDK's own manifest declares that transmission.
+
+### What you must add to your own app's privacy disclosure
+
+**Read [the GrantivaSDK privacy manifest section](https://github.com/grantiva/ios-sdk#privacy-manifest)
+— that is where the collection actually happens, and it is what you must disclose.** An empty
+manifest here does not mean these views are free of privacy obligations.
+
+In particular, the drop-in views collect free text from your users and route it to Grantiva:
+
+| View | What the user types | What you must disclose |
+|---|---|---|
+| `SubmitFeatureRequestView` | Feature request title and description | User Content |
+| `FeatureRequestDetailView` | Comments on a feature request | User Content |
+| `SubmitTicketView` | Ticket subject, message body, **and an optional email address** | Customer Support, and Email Address if you leave the email field in place |
+| `TicketDetailView` | Ticket replies | Customer Support |
+
+`SubmitTicketView` renders an email field by default. If you present it, your app collects email
+addresses and you must say so in App Store Connect. If you do not want that obligation, build
+your own ticket form and call `grantiva.feedback.submitTicket(subject:body:)` without an email.
+
+None of this is used for tracking, so leave "Used for Tracking" unchecked for these items.
+
 ## License
 
 © 2025 Grantiva. All rights reserved.
