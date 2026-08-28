@@ -1,6 +1,6 @@
 # GrantivaUI
 
-Drop-in SwiftUI views for Grantiva feedback and feature flag UI. Add a full-featured feedback portal to your iOS or macOS app in minutes.
+Drop-in SwiftUI views for Grantiva feature requests and support tickets. Add a full-featured feedback portal to your iOS or macOS app in minutes.
 
 ## Requirements
 
@@ -89,6 +89,31 @@ SupportTicketListView(store: store) { ticket in
     // handle selection
 }
 ```
+
+## Loading, Empty, and Error States
+
+Every list and detail view distinguishes *"nothing here yet"* from *"we couldn't load this"*.
+A failed fetch renders a retry affordance instead of an empty state, and a detail view never
+shows a previously selected item's content while a new one is loading.
+
+Views read this from the store, so custom UI can use the same states:
+
+```swift
+switch store.featureListState {
+case .loading:                 // fetch in flight, nothing to show yet
+case .failed(let message):     // load failed — show `message` and a retry
+case .empty:                   // loaded successfully, genuinely nothing here
+case .loaded(let features):    // rows to render
+}
+
+// Detail state is keyed by id and only ever reports the item you asked for.
+switch store.featureDetailState(for: featureId) { /* … */ }
+switch store.ticketDetailState(for: ticketId)   { /* … */ }
+```
+
+`store.errorMessage` carries a presentable message for a failure that occurs on top of
+content already on screen (for example a failed pull-to-refresh), which the views surface
+as an inline banner above the list rather than discarding the rows.
 
 ## Theming
 

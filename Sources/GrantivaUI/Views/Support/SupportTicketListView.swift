@@ -15,23 +15,43 @@ public struct SupportTicketListView: View {
 
     public var body: some View {
         Group {
-            if store.isLoadingTickets && store.tickets.isEmpty {
+            switch store.ticketListState {
+            case .loading:
                 LoadingView(message: "Loading tickets…")
-            } else if store.tickets.isEmpty {
+
+            case .failed(let message):
+                LoadFailureView(
+                    title: "Couldn't Load Tickets",
+                    systemImage: "exclamationmark.triangle",
+                    message: message,
+                    retry: { await service.fetchTickets() }
+                )
+
+            case .empty:
                 ContentUnavailableView(
                     "No Support Tickets",
                     systemImage: "ticket",
                     description: Text("Submit a ticket if you need help.")
                 )
-            } else {
-                List(store.tickets) { ticket in
-                    TicketRow(ticket: ticket)
-                        .contentShape(Rectangle())
-                        .onTapGesture { onSelect(ticket) }
-                }
-                .listStyle(.plain)
-                .refreshable {
-                    await service.fetchTickets()
+
+            case .loaded(let tickets):
+                VStack(spacing: 0) {
+                    if let message = store.errorMessage {
+                        ErrorBanner(message: message) {
+                            Task { await service.fetchTickets() }
+                        }
+                        .padding([.horizontal, .top])
+                    }
+
+                    List(tickets) { ticket in
+                        TicketRow(ticket: ticket)
+                            .contentShape(Rectangle())
+                            .onTapGesture { onSelect(ticket) }
+                    }
+                    .listStyle(.plain)
+                    .refreshable {
+                        await service.fetchTickets()
+                    }
                 }
             }
         }

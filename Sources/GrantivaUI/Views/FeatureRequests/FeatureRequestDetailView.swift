@@ -16,18 +16,38 @@ public struct FeatureRequestDetailView: View {
     }
 
     public var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: theme.spacing) {
-                if let feature = store.selectedFeatureRequest {
-                    featureHeader(feature)
-                    Divider()
-                    commentsSection
-                    commentInput
-                } else if store.isLoadingFeatureDetail {
-                    LoadingView(message: "Loading details…")
+        Group {
+            switch store.featureDetailState(for: featureId) {
+            case .loading, .empty:
+                LoadingView(message: "Loading details…")
+
+            case .failed(let message):
+                LoadFailureView(
+                    title: "Couldn't Load Feature Request",
+                    systemImage: "lightbulb.slash",
+                    message: message,
+                    retry: {
+                        await service.fetchFeatureRequest(featureId)
+                        await service.fetchComments(featureId)
+                    }
+                )
+
+            case .loaded(let feature):
+                ScrollView {
+                    VStack(alignment: .leading, spacing: theme.spacing) {
+                        if let message = store.errorMessage {
+                            ErrorBanner(message: message) {
+                                Task { await service.fetchFeatureRequest(featureId) }
+                            }
+                        }
+                        featureHeader(feature)
+                        Divider()
+                        commentsSection
+                        commentInput
+                    }
+                    .padding()
                 }
             }
-            .padding()
         }
         .navigationTitle("Feature Request")
         #if os(iOS)
@@ -74,14 +94,15 @@ public struct FeatureRequestDetailView: View {
             Text("Comments")
                 .font(.headline)
 
-            if store.isLoadingComments {
+            let comments = store.comments(for: featureId)
+            if store.isLoadingComments && comments.isEmpty {
                 ProgressView()
-            } else if store.featureComments.isEmpty {
+            } else if comments.isEmpty {
                 Text("No comments yet.")
                     .font(.subheadline)
                     .foregroundStyle(theme.textSecondary)
             } else {
-                ForEach(store.featureComments) { comment in
+                ForEach(comments) { comment in
                     CommentBubble(comment: comment)
                 }
             }

@@ -67,7 +67,7 @@ func makeStubService(store: FeedbackStore, backend: StubBackend) -> FeedbackUISe
             }
         },
         fetchFeatureRequest: { @Sendable id in
-            await MainActor.run { store.isLoadingFeatureDetail = true }
+            await MainActor.run { store.beginFeatureDetailLoad(id: id) }
             do {
                 let request = try await backend.featureRequest(id)
                 await MainActor.run {
@@ -133,7 +133,7 @@ func makeStubService(store: FeedbackStore, backend: StubBackend) -> FeedbackUISe
             }
         },
         fetchComments: { @Sendable featureId in
-            await MainActor.run { store.isLoadingComments = true }
+            await MainActor.run { store.beginCommentsLoad(featureId: featureId) }
             do {
                 let comments = try await backend.comments(featureId)
                 await MainActor.run {
@@ -183,7 +183,7 @@ func makeStubService(store: FeedbackStore, backend: StubBackend) -> FeedbackUISe
             }
         },
         fetchTicketDetail: { @Sendable id in
-            await MainActor.run { store.isLoadingTicketDetail = true }
+            await MainActor.run { store.beginTicketDetailLoad(id: id) }
             do {
                 let (ticket, messages) = try await backend.ticketDetail(id)
                 await MainActor.run {

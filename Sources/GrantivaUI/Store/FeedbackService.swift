@@ -74,7 +74,7 @@ extension FeedbackUIService {
                 }
             },
             fetchFeatureRequest: { @Sendable id in
-                await MainActor.run { store.isLoadingFeatureDetail = true }
+                await MainActor.run { store.beginFeatureDetailLoad(id: id) }
                 do {
                     let request = try await sdk.getFeatureRequest(id: id)
                     await MainActor.run {
@@ -158,7 +158,7 @@ extension FeedbackUIService {
                 }
             },
             fetchComments: { @Sendable featureId in
-                await MainActor.run { store.isLoadingComments = true }
+                await MainActor.run { store.beginCommentsLoad(featureId: featureId) }
                 do {
                     let comments = try await sdk.getComments(for: featureId)
                     await MainActor.run {
@@ -208,7 +208,7 @@ extension FeedbackUIService {
                 }
             },
             fetchTicketDetail: { @Sendable id in
-                await MainActor.run { store.isLoadingTicketDetail = true }
+                await MainActor.run { store.beginTicketDetailLoad(id: id) }
                 do {
                     let result = try await sdk.getTicket(id: id)
                     await MainActor.run {

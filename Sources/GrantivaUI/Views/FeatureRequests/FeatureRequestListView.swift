@@ -15,31 +15,51 @@ public struct FeatureRequestListView: View {
 
     public var body: some View {
         Group {
-            if store.isLoadingFeatures && store.featureRequests.isEmpty {
+            switch store.featureListState {
+            case .loading:
                 LoadingView(message: "Loading feature requests…")
-            } else if store.featureRequests.isEmpty {
+
+            case .failed(let message):
+                LoadFailureView(
+                    title: "Couldn't Load Feature Requests",
+                    systemImage: "lightbulb.slash",
+                    message: message,
+                    retry: { await service.fetchFeatureRequests() }
+                )
+
+            case .empty:
                 ContentUnavailableView(
                     "No Feature Requests",
                     systemImage: "lightbulb",
                     description: Text("Be the first to suggest a feature.")
                 )
-            } else {
-                List(store.featureRequests) { feature in
-                    FeatureRequestRow(feature: feature) {
-                        Task {
-                            if feature.hasVoted {
-                                await service.removeVote(feature.id)
-                            } else {
-                                await service.vote(feature.id)
+
+            case .loaded(let features):
+                VStack(spacing: 0) {
+                    if let message = store.errorMessage {
+                        ErrorBanner(message: message) {
+                            Task { await service.fetchFeatureRequests() }
+                        }
+                        .padding([.horizontal, .top])
+                    }
+
+                    List(features) { feature in
+                        FeatureRequestRow(feature: feature) {
+                            Task {
+                                if feature.hasVoted {
+                                    await service.removeVote(feature.id)
+                                } else {
+                                    await service.vote(feature.id)
+                                }
                             }
                         }
+                        .contentShape(Rectangle())
+                        .onTapGesture { onSelect(feature) }
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture { onSelect(feature) }
-                }
-                .listStyle(.plain)
-                .refreshable {
-                    await service.fetchFeatureRequests()
+                    .listStyle(.plain)
+                    .refreshable {
+                        await service.fetchFeatureRequests()
+                    }
                 }
             }
         }
@@ -63,4 +83,17 @@ public struct FeatureRequestListView: View {
 #Preview("Empty") {
     FeatureRequestListView(store: FeedbackStore(), onSelect: { _ in })
         .feedbackService(.preview)
+}
+
+#Preview("Load failure") {
+    let store = FeedbackStore()
+    store.error = URLError(.notConnectedToInternet)
+    return FeatureRequestListView(store: store, onSelect: { _ in })
+        .feedbackService(FeedbackUIService(
+            fetchFeatureRequests: {}, fetchFeatureRequest: { _ in },
+            submitFeatureRequest: { _, _ in false }, vote: { _ in }, removeVote: { _ in },
+            fetchComments: { _ in }, addComment: { _, _ in false }, fetchTickets: {},
+            fetchTicketDetail: { _ in }, submitTicket: { _, _, _ in false },
+            replyToTicket: { _, _ in false }
+        ))
 }

@@ -17,24 +17,38 @@ public struct TicketDetailView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            if store.isLoadingTicketDetail && store.selectedTicket == nil {
+            switch store.ticketDetailState(for: ticketId) {
+            case .loading, .empty:
                 LoadingView(message: "Loading conversation…")
-            } else {
+
+            case .failed(let message):
+                LoadFailureView(
+                    title: "Couldn't Load Conversation",
+                    systemImage: "exclamationmark.bubble",
+                    message: message,
+                    retry: { await service.fetchTicketDetail(ticketId) }
+                )
+
+            case .loaded(let ticket):
                 ScrollView {
                     VStack(alignment: .leading, spacing: theme.spacing) {
-                        if let ticket = store.selectedTicket {
-                            ticketHeader(ticket)
-                            Divider()
+                        if let message = store.errorMessage {
+                            ErrorBanner(message: message) {
+                                Task { await service.fetchTicketDetail(ticketId) }
+                            }
                         }
 
-                        ForEach(store.ticketMessages) { message in
+                        ticketHeader(ticket)
+                        Divider()
+
+                        ForEach(store.messages(for: ticketId)) { message in
                             MessageBubble(message: message)
                         }
                     }
                     .padding()
                 }
 
-                replyInput
+                replyInput(for: ticket)
             }
         }
         .navigationTitle("Ticket")
@@ -63,8 +77,8 @@ public struct TicketDetailView: View {
     }
 
     @ViewBuilder
-    private var replyInput: some View {
-        if store.selectedTicket?.status != .closed {
+    private func replyInput(for ticket: SupportTicket) -> some View {
+        if ticket.status != .closed {
             HStack(spacing: 8) {
                 TextField("Write a reply…", text: $reply, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
