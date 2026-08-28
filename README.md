@@ -5,7 +5,7 @@ Drop-in SwiftUI views for Grantiva feedback and feature flag UI. Add a full-feat
 ## Requirements
 
 - iOS 18+ or macOS 15+
-- [GrantivaSDK](https://github.com/grantiva/ios-sdk) 1.0.1+
+- [GrantivaSDK](https://github.com/grantiva/ios-sdk) 2.0.1+
 
 ## Installation
 
